@@ -5,6 +5,165 @@
 #include <netinet/in.h>
 #include <string.h>
 #include <netdb.h>
+
+int main(int argc, char **argv){
+int clientSocket;
+char buffer[1024];
+struct sockaddr_in serverAddr;
+socklen_t addr_size;
+unsigned short port;
+struct hostent *hostnm;
+clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+serverAddr.sin_family = AF_INET;
+port = (unsigned short)atoi(argv[2]);
+serverAddr.sin_port = htons(port);
+hostnm = gethostbyname(argv[1]);
+serverAddr.sin_addr.s_addr = *((unsigned long *)hostnm->h_addr);
+memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+addr_size = sizeof serverAddr;
+connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+    int choice;
+    do {printf("1. Add student\n2. Display student by ID\n3. Display students by score\n4. Display all students\n5. Delete student by ID\n6. Exit\n");
+        // Send the choice to the server
+        uint32_t network_choice = htonl(choice);
+        send(clientSocket, &network_choice, sizeof(network_choice), 0);
+        
+        if (choice == 1) {
+            // Ask for ID
+            printf("Enter student ID: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for first name
+            printf("Enter first name: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for last name
+            printf("Enter last name: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for score
+            printf("Enter score: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        } else if (choice == 2 || choice == 5) {
+            // Ask for ID
+            printf("Enter student ID: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        } else if (choice == 3) {
+            // Ask for score
+            printf("Enter score: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        }  
+    close(clientSocket);
+    return 0;}
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <arpa/inet.h>
+
+#define MAX_BUFFER 1024
+
+int main(int argc, char **argv){
+    int clientSocket;
+    char buffer[MAX_BUFFER];
+    struct sockaddr_in serverAddr;
+    socklen_t addr_size;
+    unsigned short port;
+    struct hostent *hostnm;
+
+    clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+
+    serverAddr.sin_family = AF_INET;
+    port = (unsigned short)atoi(argv[2]);
+    serverAddr.sin_port = htons(port);
+    hostnm = gethostbyname(argv[1]);
+    serverAddr.sin_addr.s_addr = *((unsigned long *)hostnm->h_addr);
+    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
+
+    addr_size = sizeof serverAddr;
+    connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
+
+    int choice;
+    do {
+        printf("1. Add new student information to the database\n");
+        printf("2. Display a student's information\n");
+        printf("3. Display information of all students with a score above a certain score\n");
+        printf("4. Display the information of all the students\n");
+        printf("5. Delete a student entry from the database\n");
+        printf("6. Exit the program\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+
+        uint32_t network_choice = htonl(choice);
+        send(clientSocket, &network_choice, sizeof(network_choice), 0);
+
+        if (choice == 1) {
+            // Ask for ID
+            printf("Enter student ID: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for first name
+            printf("Enter first name: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for last name
+            printf("Enter last name: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+
+            // Ask for score
+            printf("Enter score: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        } else if (choice == 2 || choice == 5) {
+            // Ask for ID
+            printf("Enter student ID: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        } else if (choice == 3) {
+            // Ask for score
+            printf("Enter score: ");
+            scanf("%s", buffer);
+            send(clientSocket, buffer, strlen(buffer), 0);
+        }
+
+        // Receive and print the server's response
+        recv(clientSocket, buffer, MAX_BUFFER, 0);
+        printf("%s\n", buffer);
+
+    } while (choice != 6);
+
+    close(clientSocket);
+    return 0;
+}
+
+switch (choice) {
+            case 1:
+                add(clientSocket);
+                break;
+            case 2:
+                display(clientSocket);
+                break;
+            case 3:
+                display_score(clientSocket);
+                break;
+            case 4:
+                display_all(clientSocket);
+                break;
+            case 5:
+                delete(clientSocket);
+                break; }} while (choice != 6);
+
 #define MAX_STUDENTS 100
 
 struct Student {
@@ -99,79 +258,5 @@ void delete(int socket) {
 }
 
 
-
-
-int main(int argc, char **argv){
-int clientSocket;
-char buffer[1024];
-struct sockaddr_in serverAddr;
-socklen_t addr_size;
-unsigned short port;
-struct hostent *hostnm;
-uint32_t cnum;
-char msg[30];
-/*---- Create the socket. The three arguments are: ----*/
-/* 1) Internet domain 2) Stream socket 3) Default protocol (TCP in this case) */
-clientSocket = socket(PF_INET, SOCK_STREAM, 0);
-/*---- Configure settings of the server address struct ----*/
-/* Address family = Internet */
-serverAddr.sin_family = AF_INET;
-/* set port number*/
-port = (unsigned short)atoi(argv[2]);
-/* htons() stands for "host to network short" and is used to convert the port
-number stored in the "port" variable from host byte order to network byte order,
-ensuring that data is not misinterpreted when sent over the network. */
-serverAddr.sin_port = htons(port);
-/* Set IP address to localhost */
-hostnm = gethostbyname(argv[1]);
-/* This sets the serverAddr structure's sin_addr member to the host address
-provided by the hostnm->h_addr variable. The s_addr field contains the IP address
-of the host in network byte order, and the *((unsigned long *)hostnm->h_addr)
-expression casts the data to an unsigned long type. This ensures that the IP
-address taken from hostnm is formatted correctly for network communication. */
-serverAddr.sin_addr.s_addr = *((unsigned long *)hostnm->h_addr);
-/* Set all bits of the padding field to 0. It is used to ensure that the serverAddr
-structure is correctly zero initialized before use, which is necessary for certain
-network operations. */
-memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
-/*---- Connect the socket to the server using the address struct ----*/
-addr_size = sizeof serverAddr;
-connect(clientSocket, (struct sockaddr *) &serverAddr, addr_size);
-    // communication starts from here
-    // Display the menu and get the user's choice
-    int choice;
-    do {
-        printf("1. Add new student information to the database\n");
-        printf("2. Display a student's information\n");
-        printf("3. Display information of all students with a score above a certain score\n");
-        printf("4. Display the information of all the students\n");
-        printf("5. Delete a student entry from the database\n");
-        printf("6. Exit the program\n");
-        printf("Enter your choice: ");
-        scanf("%d", &choice);
-
-        // Send the choice to the server
-        uint32_t network_choice = htonl(choice);
-        send(clientSocket, &network_choice, sizeof(network_choice), 0);
-
-        switch (choice) {
-            case 1:
-                add(clientSocket);
-                break;
-            case 2:
-                display(clientSocket);
-                break;
-            case 3:
-                display_score(clientSocket);
-                break;
-            case 4:
-                display_all(clientSocket);
-                break;
-            case 5:
-                delete(clientSocket);
-                break;
-        }
-    } while (choice != 6);
-return 0;}
 
 
