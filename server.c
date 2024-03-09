@@ -94,10 +94,10 @@ void deleteByID(int newSocket) {
             for (int j = i; j < numStudents - 1; j++) {
                 students[j] = students[j + 1];}
           numStudents--;
-            char *successMessage = "Student deleted successfully!\n";
+            char *successMessage = "Student deleted!\n";
             send(newSocket, successMessage, strlen(successMessage), 0);
             return;}}
-    char *errorMessage = "No student with the given ID was found.\n";
+    char *errorMessage = "No student found\n";
     send(newSocket, errorMessage, strlen(errorMessage), 0);}
 
 int main(int argc, char **argv){
